@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies and run tests
+        working-directory: \${{ matrix.dir }}
+        run: |
+          npm install
+          npm test --if-present
+      - name: Build frontend
+        if: matrix.dir == 'frontend'
+        working-directory: frontend
+        run: |
+          npm run build
