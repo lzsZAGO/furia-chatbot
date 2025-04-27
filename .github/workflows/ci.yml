@@ -2,29 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dir: [backend, frontend]
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Usar Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      - name: Install dependencies and run tests
-        working-directory: ${{ matrix.dir }}
-        run: |
-          npm install
-          npm test --if-present
-      - name: Build frontend
-        if: matrix.dir == 'frontend'
-        working-directory: ${{ matrix.dir }}
-        run: |
-          npm run build
+          node-version: 18
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Rodar linter (opcional)
+        run: npm run lint
+
+      - name: Rodar testes
+        run: npm test
