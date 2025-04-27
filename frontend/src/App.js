@@ -1,18 +1,28 @@
-// frontend/src/App.js
+/**
+ * App.js
+ * Desenvolvido por Leoni
+ * Chat em tempo real para fãs da FURIA Tech
+ * Última atualização: 2025-04-27
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import './index.css';
 
-// configura reconexão automática
-const socket = io('http://localhost:3001', {
+// URL do backend (ajuste se mudar de porta ou domínio)
+const SOCKET_URL = 'http://localhost:3001';
+// Prefixo para disparar resposta do bot
+const BOT_ALIAS = '@FURIABOT';
+
+// Inicializa conexão WebSocket com reconexão automática
+const socket = io(SOCKET_URL, {
   reconnectionAttempts: 5,
   reconnectionDelay: 2000,
 });
 
-const BOT_ALIAS = '@FURIABOT';
-
 export default function App() {
+  // Estado de conexão, mensagens, input e indicadores de erro/digitação
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -20,56 +30,67 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // ————— Persistência de histórico —————
+  // Carrega ao montar
   useEffect(() => {
-    socket.on('connect', () => setConnected(true));
+    const saved = localStorage.getItem('chatHistory');
+    if (saved) setMessages(JSON.parse(saved));
+  }, []);
+
+  // Salva sempre que `messages` mudar
+  useEffect(() => {
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  }, [messages]);
+
+  // ————— Configura listeners do Socket.io —————
+  useEffect(() => {
+    socket.on('connect',    () => setConnected(true));
     socket.on('disconnect', () => setConnected(false));
     socket.on('reconnect_attempt', () => setConnected(false));
+    socket.on('typing',     () => setIsTyping(true));
 
-    socket.on('typing', () => setIsTyping(true));
-
+    // Bot envia mensagem final
     socket.on('chat message', (msg) => {
       setIsTyping(false);
       const timestamp = new Date();
       setMessages(prev => [
         ...prev,
-        { id: prev.length, content: msg, type: 'bot', timestamp, reactions: { '🔥': 0, '⚡': 0, '❤️': 0 } }
+        { id: prev.length, content: msg, type: 'bot', timestamp, reactions: { '🔥':0,'⚡':0,'❤️':0 } }
       ]);
     });
 
+    // Simulação de live status
     socket.on('live status', (msg) => {
+      setIsTyping(false);
       const timestamp = new Date();
       setMessages(prev => [
         ...prev,
-        { id: prev.length, content: msg, type: 'live', timestamp, reactions: { '🔥': 0, '⚡': 0, '❤️': 0 } }
+        { id: prev.length, content: msg, type: 'live', timestamp, reactions: { '🔥':0,'⚡':0,'❤️':0 } }
       ]);
     });
 
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('reconnect_attempt');
-      socket.off('typing');
-      socket.off('chat message');
-      socket.off('live status');
-    };
+    return () => socket.removeAllListeners();
   }, []);
 
+  // Auto-scroll até a última mensagem
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
+  // ————— Envio de mensagens —————
   const sendMessage = () => {
     const text = input.trim();
     if (!text) return;
     setSendError(false);
 
-    // adiciona mensagem do usuário localmente
+    // Adiciona no feed local
+    const userTimestamp = new Date();
     setMessages(prev => [
       ...prev,
-      { id: prev.length, content: text, type: 'user', timestamp: new Date(), reactions: { '🔥': 0, '⚡': 0, '❤️': 0 } }
+      { id: prev.length, content: text, type: 'user', timestamp: userTimestamp, reactions: { '🔥':0,'⚡':0,'❤️':0 } }
     ]);
 
-    // só envia ao bot se mencionado
+    // Só chama o bot se a mensagem começar com @FURIABOT
     if (text.startsWith(`${BOT_ALIAS} `)) {
       const query = text.slice(BOT_ALIAS.length).trim();
       socket.emit('chat message', query, (response) => {
@@ -80,11 +101,10 @@ export default function App() {
     setInput('');
   };
 
+  // ————— Simulação de live status —————
   const startLive = () => socket.emit('start live');
 
-  const formatTime = date =>
-    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+  // ————— Reações de emoji —————
   const addReaction = (msgId, emoji) => {
     setMessages(prev => prev.map(msg =>
       msg.id === msgId
@@ -93,6 +113,10 @@ export default function App() {
     ));
   };
 
+  // Formata o timestamp para “HH:MM”
+  const formatTime = date =>
+    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   return (
     <div className="flex flex-col h-screen bg-furia-black-piano">
       {/* HEADER */}
@@ -100,13 +124,15 @@ export default function App() {
         <motion.h1
           className="text-3xl font-bold text-furia-white-ice"
           initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
+          animate={{ x: 0,  opacity: 1 }}
           transition={{ duration: 0.5 }}
-        >FURIA Chat</motion.h1>
+        >
+          FURIA Chat
+        </motion.h1>
         <div className="flex items-center space-x-4">
           <motion.span
             className={connected ? 'text-green-500' : 'text-red-500'}
-            animate={connected ? { scale: [1, 1.1, 1] } : { opacity: [0.5, 1, 0.5] }}
+            animate={connected ? { scale: [1,1.1,1] } : { opacity: [0.5,1,0.5] }}
             transition={{ repeat: Infinity, duration: 1 }}
           >
             {connected ? 'Conectado ✅' : 'Reconectando… 🔄'}
@@ -116,7 +142,9 @@ export default function App() {
             className="px-3 py-1 bg-furia-white-ice text-black font-semibold rounded hover:bg-white transition"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-          >Simular Live</motion.button>
+          >
+            Simular Live
+          </motion.button>
         </div>
       </header>
 
@@ -129,18 +157,19 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`mb-2 p-4 rounded-2xl max-w-md shadow-xl whitespace-pre-wrap leading-snug ${
-                type === 'user'
+              className={`
+                mb-2 p-4 rounded-2xl max-w-md shadow-xl whitespace-pre-wrap leading-snug
+                ${type==='user'
                   ? 'bg-furia-white-ice text-black self-end'
-                  : type === 'live'
+                  : type==='live'
                     ? 'bg-yellow-900 text-yellow-300 self-center italic'
-                    : 'bg-furia-gray text-furia-white self-start'
-              }`}
+                    : 'bg-furia-gray text-furia-white self-start'}
+              `}
             >
               <div className="flex justify-between items-start">
                 <div>{content}</div>
                 <div className="flex space-x-1 ml-2">
-                  {['🔥', '⚡', '❤️'].map(emoji => (
+                  {['🔥','⚡','❤️'].map(emoji => (
                     <motion.span
                       key={emoji}
                       className="cursor-pointer text-sm"
@@ -161,10 +190,12 @@ export default function App() {
 
         {isTyping && (
           <motion.div
-            className="mb-2 p-3 italic text-gray-400 self-start"
-            animate={{ opacity: [0, 1, 0] }}
+            className="mb-2 p-3 italic text-gray-400 self-start animate-pulse"
+            animate={{ opacity: [0,1,0] }}
             transition={{ repeat: Infinity, duration: 1 }}
-          >digitando...</motion.div>
+          >
+            digitando...
+          </motion.div>
         )}
 
         <div ref={messagesEndRef} />
@@ -175,12 +206,17 @@ export default function App() {
         <div className="flex">
           <motion.input
             whileFocus={{ scale: 1.02 }}
-            className={`flex-1 rounded-full p-3 mr-2 bg-furia-black-piano border-2 ${
-              sendError ? 'border-red-500 animate-pulse' : 'border-furia-white-ice'
-            } placeholder-gray-500 text-furia-white focus:outline-none focus:ring-2 focus:ring-furia-white-ice`}
+            className={`
+              flex-1 rounded-full p-3 mr-2 bg-furia-black-piano border-2
+              ${sendError
+                ? 'border-red-500 animate-pulse'
+                : 'border-furia-white-ice'}
+              placeholder-gray-500 text-furia-white
+              focus:outline-none focus:ring-2 focus:ring-furia-white-ice
+            `}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+            onKeyDown={e => e.key==='Enter' && sendMessage()}
             placeholder="Digite sua mensagem..."
           />
           <motion.button
@@ -188,7 +224,9 @@ export default function App() {
             onClick={sendMessage}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-          >Enviar</motion.button>
+          >
+            Enviar
+          </motion.button>
         </div>
         {sendError && (
           <div className="text-red-500 text-sm mt-2 animate-pulse">
