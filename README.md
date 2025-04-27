@@ -1,81 +1,106 @@
 # FURIA Chatbot
 
-[![CI](https://github.com/<seu-usuario>/furia-chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/<seu-usuario>/furia-chatbot/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+Um aplicativo de chatbot que mantém os fãs da FURIA atualizados sobre notícias e partidas de Counter-Strike, além de responder perguntas gerais sobre o time.
 
-## 📋 Descrição
+---
 
-O **FURIA Chatbot** é uma aplicação de chat em tempo real desenvolvida para fãs da FURIA Tech. Combina funcionalidades de WebSockets, inteligência artificial via OpenAI ChatGPT e uma experiência de usuário premium, com animações, tema estilizado e apresentação de status ao vivo.
+## Status do CI
+O workflow de CI foi **temporariamente desabilitado**, renomeado para:
 
-## 🔧 Tecnologias
+```
+.github/workflows/ci.disabled.yml
+```
 
-- **Backend**: Node.js, Express, Socket.io, OpenAI API, dotenv
-- **Frontend**: React, Tailwind CSS, Framer Motion, Socket.io-client
-- **Ferramentas**: GitHub Actions (CI), npm
+Isso evita erros no GitHub Actions enquanto você testa localmente.
 
-## 🚀 Funcionalidades Principais
+---
 
-- **Chat em tempo real** com reconexão automática e tratamento de erros (Socket.io)
-- **Resposta inteligente**: integração com ChatGPT, acionada por menção (`@FURIABOT`)
-- **Indicador de digitação** antes de cada resposta do bot
-- **Simulação de live status** de jogos com eventos programados
-- **Animações envolventes** de mensagens, botões e badges (Framer Motion)
-- **Reações de emoji** em cada mensagem com contagem dinâmica
-- **Design alinhado à marca FURIA**: tema `black-piano`, `white-ice`, `gray`, tipografia e sombras marcantes
-- **Auto-scroll** para a última mensagem e exibição de timestamp em cada balão
+## Pré-requisitos
 
-## 📥 Instalação e Execução
+Antes de começar, certifique-se de ter instalado:
 
-### 1. Preparar o repositório
+- **Node.js** v18 ou superior
+- **npm** 8 ou superior (ou **yarn**)
+- **Git** para clonar o repositório
+
+---
+
+## Estrutura do Projeto
+
+```
+furia-chatbot/
+├── backend/          # API e lógica de backend
+│   ├── package.json
+│   ├── package-lock.json
+│   └── src/          # código-fonte
+├── frontend/         # Aplicação cliente (React + Vite)
+│   ├── package.json
+│   ├── package-lock.json
+│   └── src/          # código-fonte
+├── .github/
+│   └── workflows/
+│       └── ci.disabled.yml  # CI temporariamente desativado
+├── README.md         # este arquivo
+└── LICENSE.txt
+```
+
+---
+
+## Como rodar e testar localmente
+
+Siga estes passos para clonar e executar o projeto no seu próprio dispositivo.
+
+### 1. Clone do repositório
 ```bash
-# Clone o repositório
-git clone git@github.com:<seu-usuario>/furia-chatbot.git
+git clone https://github.com/seu-usuario/furia-chatbot.git
 cd furia-chatbot
 ```
 
-### 2. Backend
+### 2. Frontend
 ```bash
-cd backend
-cp .env.example .env                # configure sua chave OPENAI_API_KEY
-npm install                          # instala dependências
-npm start                            # roda em http://localhost:3001
+cd frontend
+npm install           # instala dependências e gera package-lock.json
+npm test              # executa script de testes (placeholder retorna "Sem testes ainda")
+npm run dev           # inicia o Vite em http://localhost:5173
 ```
 
-### 3. Frontend
+### 3. Backend
 ```bash
-cd ../frontend
-npm install                          # instala dependências
-npm start                            # roda em http://localhost:3000
+cd ../backend
+npm install           # instala dependências e gera package-lock.json
+npm test              # execute apenas se tiver testes configurados
+npm start             # inicia o servidor (por ex. http://localhost:3000)
 ```
 
-## 📁 Estrutura de Pastas
-```
-furia-chatbot/
-├─ backend/         # servidor Express + Socket.io + ChatGPT
-│  ├─ index.js
-│  ├─ package.json
-│  └─ .env.example
-├─ frontend/        # app React com Tailwind e Framer Motion
-│  ├─ src/
-│  ├─ tailwind.config.js
-│  └─ package.json
-├─ .github/workflows/ci.yml  # integração contínua
-├─ README.md
-└─ LICENSE.md
-```
+---
 
-## ⚙️ Integração Contínua (CI)
-Cada push e pull request na branch `main` dispara um workflow que:
-1. Checa o código
-2. Instala dependências (frontend e backend)
-3. Executa testes (se presentes)
+## Scripts Disponíveis
 
-## 🤝 Contribuição
-1. Fork este repositório
-2. Crie uma branch: `git checkout -b feat/nova-funcionalidade`
-3. Faça commits claros e semânticos
-4. Envie um Pull Request para `main`
+No diretório **frontend**:
 
-## 📄 Licença
-Este projeto é licenciado sob a [MIT License](LICENSE).
+- `npm run dev`: inicia o servidor de desenvolvimento do Vite
+- `npm test`: executa o script de teste configurado (placeholder)
+
+No diretório **backend**:
+
+- `npm start`: inicia a API/servidor
+- `npm test`: executa testes, se existirem
+
+---
+
+## Contribuições
+
+Contribuições são bem-vindas! Para colaborar:
+
+1. Crie um fork deste repositório
+2. Abra uma branch com sua feature: `git checkout -b minha-feature`
+3. Commit suas alterações: `git commit -m "Minha feature"`
+4. Faça push: `git push origin minha-feature`
+5. Abra um Pull Request
+
+---
+
+## Licença
+
+Este projeto está licenciado sob a [MIT License](LICENSE.txt).
 
